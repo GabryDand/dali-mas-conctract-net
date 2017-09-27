@@ -1,0 +1,47 @@
+:- use_module(library(random)).
+:- dynamic guadagno/1.
+:- dynamic ordine/1.
+ordine(0).
+
+
+
+/*in submittedProduct memorizzo gli ordini per cui l agente  e conforme ai requisiti  */
+:- dynamic submittedProduct/5.
+guadagno(0).
+quantita(2).
+tempo(10).
+
+
+/*Evento esterno causato da un nuovo prodotto richiama l azione di controllo dei requisiti */
+newOrderE(N,Q,T,M):> ordine(O),O1 is O+1, retractall(ordine(_)), assert(ordine(O1)),
+						write('ORDINE N. '), write(O1), nl,
+						write(' PRODOTTO RICHIESTO: '), write(N) ,nl, 
+						write(' QUANTITA RICHIESTA: '), write(Q) , write(' porzioni'),nl,
+						checkRequiredA(N,Q,T,M).
+
+/* se i requisiti sono rispettati l agente fa la sua offerta ed indica il prezzo di vendita, altrimenti rifiuta */
+checkRequiredA(N,Q,T,M):> quantita(Q_ag), tempo(T_ag), Q_ag=<Q, T_ag=<T,ordine(O1),
+						random(1, 10, Ran), G is (20-Ran), G=<M,
+						messageA(agentManager, send_message(offerFromSeller(N,Q,T,M,G,0,agentSeller1),agentSeller1)),
+						write(' OFFERTA INVIATA PER SERVIRE ORDINE N: '), write(O1),nl,nl.
+
+checkRequiredA(N,Q,T,M):> ordine(O), write(' REQUISITI INSUFFICIETNI SE SODDISFARE L ORDINE N: '), write(O), nl,
+						messageA(agentManager, send_message(refuseFromSeller(N,Q,T,M,0, agentSeller1),agentSeller1)),nl,nl. 
+
+offerRejectedE(N):> ordine(O), write('--> RIFIUTATA L OFFERTA PER L ORDINE: '), write(O), nl,nl.
+
+
+offerAcceptedE(N,Q,T,M,G):> ordine(O), write('--> ACCETTATA L OFFERTA PER L ORDINE: '), write(O), nl, 
+							write(' PRODOTTO CONSEGNATO: '), write(N), nl,
+							write(' GUADAGNO OTTENUTO: '), write(G), nl,nl,
+							guadagno(B), retractall(guadagno(_)), B1 is B+G, assert(guadagno(B1)),
+							messageA(agentManager, send_message(orderAssigned(N,agentSeller1),agentSeller1)),
+							write(' ORDINE N: '), write(O), write(' SODDISFATTO CON SUCCESSO!! '),nl,nl.
+
+closeApplicationE(E):> 	nl,nl,write('--> NON SONO PRESENTI ORDINI DA SODDISFARE'), nl,
+					write(' GADAGNO COMPLESSIVO: '), guadagno(B), write(B),nl,nl,
+					retractall(guadagno(_)), assert(guadagno(0)),
+					retractall(ordine(_)), assert(ordine(0)),
+					nl,nl,write('**** APPLICAZIONE TERMINATA CON SUCCESSO ****'), nl.
+
+

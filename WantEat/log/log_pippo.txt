@@ -1,0 +1,7 @@
+send_message(send_message(newOrder(antipasto,2,30,15),pippo))
+send_message(send_message(newOrder(primi_piatti,3,10,30),pippo))
+send_message(send_message(newOrder(secondi_piatti,3,20,30),pippo))
+send_message(send_message(newOrder(contorni,2,50,20),pippo))
+send_message(send_message(newOrder(dolce,1,80,15),pippo))
+send_message(send_message(newOrder(bevanda,3,20,15),pippo))
+send_message(send_message(closeApplication(end),pippo))

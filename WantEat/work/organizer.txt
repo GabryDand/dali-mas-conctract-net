@@ -1,0 +1,62 @@
+:- dynamic numOrder/1.
+:- dynamic numDelivered/1.
+:- dynamic numNotDelivered/1.
+:- dynamic totOrder/1.
+:- dynamic order/5.
+:- dynamic on/1.
+:- dynamic stop/1.
+
+on(0).
+totOrder(0).
+numOrder(0).
+numDelivered(0).
+numNotDelivered(0).
+stop(0).
+order(antipasto,2,30,15,0).
+order(primi_piatti, 3,10,30,0).
+order(secondi_piatti, 3,20,30,0).
+order(contorni, 2,25,20,0).
+order(dolce, 1,5,15,0).
+order(bevanda, 3,10,15,0).
+
+
+activateApplicationE:> retract(on(0)), assert(on(1)),
+					write('*****APPLICAZIONE AVVIATA CON SUCCESSO*****'),nl,nl,nl, sleep(2).
+
+
+requestOrder:- on(1),stop(0),order(_,_,_,_,0).
+requestOrderI:> 	order(N,Q,T,M,0), 
+				messageA(agentManager, send_message(newOrder(N,Q,T,M), organizer)), 
+				numOrder(Num), N1 is Num+1, 
+				retractall(numOrder(_)), assert(numOrder(N1)),
+				write('ORDINE UTENTE: '), write(N),nl, 
+				write('RICHIESTA INVIATA CON SUCCESSO AL MANAGER'),nl,nl,
+          			retractall(stop(_)), assert(stop(1)).
+
+
+closeApplication:- totOrder(6), on(1).
+closeApplicationI:> 	nl, write('*****APPLICAZIONE TERMINATA CON SUCCESSO*****'), nl,
+				write(' Numero di ordini soddisfatti: '), numDelivered(Num1),
+				numNotDelivered(Num2), write(Num1/6),
+				messageA(agentManager, send_message(closeApplication('end'), organizer)),
+				retractall(on(_)), assert(on(0)).
+
+
+orderDeliveredE(N,A):> on(1), stop(1),retractall(order(N,_,_,_,_)), assert(order(N,0,0,0,4)),
+						retractall(stop(_)), assert(stop(0)), write('ORDINE: '), write(N),
+						write(' SODDISFATTO DA: '), write(A), 
+						numDelivered(Num), N1 is Num+1, 
+						totOrder(Tot), N2 is Tot+1,
+						retractall(numDelivered(_)), assert(numDelivered(N1)), 
+						retractall(totOrder(_)), assert(totOrder(N2)), nl,nl.
+
+				
+orderNotFoundE(N):> retractall(order(N,_,_,_,_)), assert(order(N,0,0,0,4)),
+								retractall(stop(_)), assert(stop(0)),
+								write('IMPOSSIBILE CONSEGNARE IL PRODOTTO, AGENTI NON CONFORMI PER RICHIESTA:'), 
+								write(N), numNotDelivered(Num), N1 is Num+1, 
+								totOrder(Tot), N2 is Tot+1,
+								retractall(numNotDelivered(_)), 
+								assert(numNotDelivered(N1)), 
+								retractall(totOrder(_)), assert(totOrder(N2)), nl,nl.
+

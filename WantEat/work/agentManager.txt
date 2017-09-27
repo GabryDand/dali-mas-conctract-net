@@ -1,0 +1,86 @@
+:- dynamic num_ordine/1.
+:- dynamic order/6.
+:- dynamic offerArrived/1.
+:- dynamic bestOffer/7.
+:- dynamic bestPrice/1.
+
+
+/* predicato in cui memorizzo la proposta dell agente con prezzo minore*/
+bestPrice(9999).
+offerArrived(0).
+num_ordine(1).
+
+
+/*evento esterno corrispondente ad un nuovo ordine asserisco un predicato order con l ultimo parametro a 0 per indicare che deve ancora essere inviato a tutti gli agenti */ 
+
+newOrderE(N,Q,T,M):>num_ordine(O),	
+                                                write(' ORDINE RICHIESTO: '), write(N), nl, 
+						write(' OFFERTA PER SERVIRE L ORDINE N: '),write(O),nl,
+						retractall(order(_,_,_,_,_)),assert(order(N,Q,T,M,0)), 
+						retractall(bestOffer(_,_,_,_,_,_,_)),
+						messageA(agentSeller1, send_message(newOrder(N,Q,T,M),agentManager)), 
+						messageA(agentSeller2, send_message(newOrder(N,Q,T,M),agentManager)),
+						messageA(agentSeller3, send_message(newOrder(N,Q,T,M),agentManager)),
+						messageA(agentSeller4, send_message(newOrder(N,Q,T,M),agentManager)).
+						
+
+
+closeApplicationE(E):> 	nl, write(' SESSIONE TERMINATA NON ESSENDOCI PIU ORDINI DA SODDISFARE '), nl,
+					messageA(agentSeller1, send_message(closeApplication(E),agentManager)),
+					messageA(agentSeller2, send_message(closeApplication(E),agentManager)),
+					messageA(agentSeller3, send_message(closeApplication(E),agentManager)),
+					messageA(agentSeller4, send_message(closeApplication(E),agentManager)).
+					
+
+
+offerFromSellerE(N,Q,T,M,G,0,A):> bestOffer(_,_,_,_,_,_,A_p), bestPrice(G_min), G<G_min,num_ordine(O),
+ 									messageA(A_p, send_message(offerRejected(N),agentManager)),
+									write(' ACCETTATA DA: '),write(A),nl, 
+									write(' AL  PREZZO DI: '), write(G), nl, 
+									retractall(bestPrice(_)), assert(bestPrice(G)),
+									retractall(bestOffer(_,_,_,_,_,0,_)), assert(bestOffer(N,Q,T,M,G,0,A)),
+									offerArrived(X), retractall(offerArrived(_)), Z is X+1, assert(offerArrived(Z)).
+
+
+offerFromSellerE(N,Q,T,M,G,0,A):> bestPrice(G_min), G<G_min,
+									
+									write(' ACCETTATA DA: '),write(A),nl, 
+									write(' AL PREZZO DI: '), write(G), nl, 
+									nl, retractall(bestPrice(_)), assert(bestPrice(G)),
+									retractall(bestOffer(_,_,_,_,_,0,_)), assert(bestOffer(N,Q,T,M,G,0,A)),
+									offerArrived(X), retractall(offerArrived(_)), Z is X+1, assert(offerArrived(Z)).
+
+
+offerFromSellerE(N,Q,T,M,G,0,A):> bestPrice(G_min), G>=G_min,
+									write(' ACCETTATA DA: '),write(A),nl, 
+									write(' AL PREZZO DI: '), write(G), nl, 
+									messageA(A, send_message(offerRejected(N),agentManager)), 
+									nl,offerArrived(X), retractall(offerArrived(_)), Z is X+1, assert(offerArrived(Z)).
+
+
+refuseFromSellerE(N,Q,T,M,0,A):> 				
+								write(' RIFIUTATA DA: '),write(A),nl, 
+								offerArrived(X), retractall(offerArrived(_)), Z is X+1, assert(offerArrived(Z)).
+
+
+assignOrderToSeller:- offerArrived(4), bestOffer(N,Q,T,M,G,0,A).
+assignOrderToSellerI:> 	retractall(offerArrived(_)), assert(offerArrived(0)),
+					num_ordine(O),bestOffer(N,Q,T,M,G,0,A),
+				 	messageA(A, send_message(offerAccepted(N,Q,T,M,G),agentManager)), 
+				 	sleep(1),write(' PER L ORDINE N: '),write(O), write(' ACCETTATA L OFFERTA DI '), write(A),nl, nl.
+
+
+orderNotSatisfable:- offerArrived(4), bestPrice(9999).
+orderNotSatisfableI:> 	retractall(offerArrived(_)), assert(offerArrived(0)),num_ordine(O),
+				write(' NESSUN OFFERTA PERVENUTA '),nl,
+				write(' IMPOSSIBILE SODDISFARE L ORDINE N: '), write(O),
+			 	num_ordine(O), write(O),nl,nl, O1 is O+1, retractall(num_ordine(_)), assert(num_ordine(O1)),
+			 	order(N,_,_,_,0), messageA(organizer, send_message(orderNotFound(N),agentManager)), retractall(order(_,_,_,_,0)).
+
+
+orderAssignedE(N,A):> bestPrice(T), retractall(bestPrice(_)), assert(bestPrice(9999)),num_ordine(O),
+				 		write(' ORDINE N: '),write(O),num_ordine(X), write(' SODDISFATTO CON SUCCESSO'),nl,nl,
+				 		num_ordine(O), O1 is O+1, retractall(num_ordine(_)), assert(num_ordine(O1)),
+				 		messageA(organizer, send_message(orderDelivered(N,A),agentManager)),
+				 		retractall(order(_,_,_,_,0)).
+

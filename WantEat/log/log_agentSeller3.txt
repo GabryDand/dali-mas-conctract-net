@@ -1,0 +1,6 @@
+send_message(send_message(refuseFromSeller(antipasto,2,30,15,0,agentSeller3),agentSeller3))
+send_message(send_message(refuseFromSeller(primi_piatti,3,10,30,0,agentSeller3),agentSeller3))
+send_message(send_message(offerFromSeller(secondi_piatti,3,20,30,12,0,agentSeller3),agentSeller3))
+send_message(send_message(refuseFromSeller(contorni,2,25,20,0,agentSeller3),agentSeller3))
+send_message(send_message(refuseFromSeller(dolce,1,5,15,0,agentSeller3),agentSeller3))
+send_message(send_message(refuseFromSeller(bevanda,3,10,15,0,agentSeller3),agentSeller3))

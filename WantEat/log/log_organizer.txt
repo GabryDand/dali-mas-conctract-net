@@ -1,0 +1,7 @@
+send_message(send_message(newOrder(antipasto,2,30,15),organizer))
+send_message(send_message(newOrder(primi_piatti,3,10,30),organizer))
+send_message(send_message(newOrder(secondi_piatti,3,20,30),organizer))
+send_message(send_message(newOrder(contorni,2,25,20),organizer))
+send_message(send_message(newOrder(dolce,1,5,15),organizer))
+send_message(send_message(newOrder(bevanda,3,10,15),organizer))
+send_message(send_message(closeApplication(end),organizer))
